@@ -11,7 +11,7 @@ from langchain.memory import ConversationBufferMemory, StreamlitChatMessageHisto
 from langchain.prompts import PromptTemplate
 
 from src.utils.config import load_config
-from src.utils.tools import SentenceCheckTool
+from src.utils.tools import IntroTool, SentenceCheckTool
 
 load_dotenv()
 
@@ -102,7 +102,7 @@ def main():
 
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         tools = load_tools(["llm-math"], llm=llm)
-        tools.extend([SentenceCheckTool()])
+        tools.extend([SentenceCheckTool(), IntroTool()])
         # tools = [SentenceCheckTool()]
         agent = initialize_agent(
             tools,
