@@ -2,15 +2,19 @@ import os
 
 import streamlit as st
 from dotenv import load_dotenv
+from langchain.agents import AgentType, initialize_agent, load_tools
+from langchain.callbacks import StreamlitCallbackHandler
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationChain
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory, StreamlitChatMessageHistory
 from langchain.prompts import PromptTemplate
 
 from src.utils.config import load_config
+from src.utils.tools import SentenceCheckTool
 
 load_dotenv()
+
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""):
@@ -36,14 +40,15 @@ class PrintRetrievalHandler(BaseCallbackHandler):
             self.container.write(f"**Document {idx} from {source}**")
             self.container.markdown(doc.page_content)
 
+
 @st.cache_resource
 def conversational_chain():
     config = load_config()
 
     # Setup memory for contextual conversation
     memory = ConversationBufferMemory(
-        #memory_key="chat_history",
-        #return_messages=True,
+        # memory_key="chat_history",
+        # return_messages=True,
     )
 
     qa_template = PromptTemplate(input_variables=["history", "input"], template=config.qa_template)
@@ -53,13 +58,13 @@ def conversational_chain():
         llm=llm,
         verbose=True,
         memory=memory,
-        #combine_docs_chain_kwargs={"prompt": qa_template},
+        # combine_docs_chain_kwargs={"prompt": qa_template},
     )
     qa_chain.prompt = qa_template
     return qa_chain
 
 
-def main():
+def old_tutor():
     st.title("👩🏻‍🏫 AI Tutor")
 
     if "qa_chain" not in st.session_state:
@@ -83,6 +88,40 @@ def main():
             stream_handler = StreamHandler(st.empty())
             response = qa_chain.run(user_query, callbacks=[stream_handler])
             st.session_state.messages.append({"role": "assistant", "content": response})
+
+
+def main():
+    st.title("👩🏻‍🏫 AI Tutor")
+
+    if "messages" not in st.session_state or st.sidebar.button("Clear message history"):
+        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+
+    if "agent" not in st.session_state:
+        msgs = StreamlitChatMessageHistory()
+        memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
+
+        llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
+        tools = load_tools(["llm-math"], llm=llm)
+        tools.extend([SentenceCheckTool()])
+        # tools = [SentenceCheckTool()]
+        agent = initialize_agent(
+            tools,
+            llm,
+            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            verbose=True,
+            memory=memory,
+        )
+        st.session_state["agent"] = agent
+
+    agent = st.session_state.agent
+
+    if prompt := st.chat_input():
+        st.chat_message("user").write(prompt)
+        with st.chat_message("assistant"):
+            st_callback = StreamlitCallbackHandler(st.container())
+            response = agent.run(prompt, callbacks=[st_callback])
+            st.write(response)
+
 
 if __name__ == "__main__":
     main()
