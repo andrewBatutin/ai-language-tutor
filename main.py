@@ -11,7 +11,9 @@ from langchain.memory import ConversationBufferMemory, StreamlitChatMessageHisto
 from langchain.prompts import PromptTemplate
 
 from src.utils.config import load_config
-from src.utils.tools import IntroTool, SentenceCheckTool
+from src.utils.parser import AITutorParser
+from src.utils.prompts.ua.tutor_agent import agent_format_instructions, agent_prefix, agent_suffix
+from src.utils.tools import IntroTool, SentenceCheckTool, VerbConjugationPractiseTool
 
 load_dotenv()
 
@@ -64,32 +66,6 @@ def conversational_chain():
     return qa_chain
 
 
-def old_tutor():
-    st.title("👩🏻‍🏫 AI Tutor")
-
-    if "qa_chain" not in st.session_state:
-        st.session_state["qa_chain"] = conversational_chain()
-    qa_chain = st.session_state.qa_chain
-
-    if "messages" not in st.session_state or st.sidebar.button("Clear message history"):
-        st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
-
-    for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
-
-    user_query = st.chat_input(placeholder="Ask me anything!")
-
-    if user_query:
-        st.session_state.messages.append({"role": "user", "content": user_query})
-        st.chat_message("user").write(user_query)
-
-        with st.chat_message("assistant"):
-            retrieval_handler = PrintRetrievalHandler(st.container())
-            stream_handler = StreamHandler(st.empty())
-            response = qa_chain.run(user_query, callbacks=[stream_handler])
-            st.session_state.messages.append({"role": "assistant", "content": response})
-
-
 def main():
     st.title("👩🏻‍🏫 AI Tutor")
 
@@ -100,9 +76,11 @@ def main():
         msgs = StreamlitChatMessageHistory()
         memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=msgs, return_messages=True)
 
+        config = load_config()
+
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         tools = load_tools(["llm-math"], llm=llm)
-        tools.extend([SentenceCheckTool(), IntroTool()])
+        tools.extend([SentenceCheckTool(), VerbConjugationPractiseTool(), IntroTool()])
         # tools = [SentenceCheckTool()]
         agent = initialize_agent(
             tools,
@@ -110,6 +88,12 @@ def main():
             agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             memory=memory,
+            agent_kwargs={
+                "prefix": agent_prefix,
+                "suffix": agent_suffix,
+                "format_instructions": agent_format_instructions,
+                "output_parser": AITutorParser(),
+            },
         )
         st.session_state["agent"] = agent
 

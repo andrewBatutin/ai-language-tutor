@@ -11,13 +11,13 @@ from src.utils.config import load_config
 
 
 class IntroTool(BaseTool):
-    name = "intro_tool"
-    description = "tool to describe how to use the AI Tutor Agent"
+    name = "інтро"
+    description = "інструмент для початку розмови, вітає користувача, використовуй цей інструмент для початку розмови"
 
     def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the tool."""
         config = load_config()
-        intro = config.intro
+        intro = config.intro_template
         return intro
 
     async def _arun(self, query: str, run_manager: Optional[AsyncCallbackManagerForToolRun] = None) -> str:
@@ -26,8 +26,8 @@ class IntroTool(BaseTool):
 
 
 class SentenceCheckTool(BaseTool):
-    name = "sentence_check_tool"
-    description = "useful for when user inputs message in polish and wants to check if it is correct"
+    name = "інструмент перевірки речення"
+    description = "інструмент для перевірки речення, використовуй цей інструмент для перевірки речення"
 
     def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the tool."""
@@ -63,8 +63,8 @@ class SentenceCheckTool(BaseTool):
 
 
 class VerbConjugationPractiseTool(BaseTool):
-    name = "conjugation_practise_tool"
-    description = "useful for when user wants to practise polish verbs conjugation"
+    name = "інструмент для вправ з дієслівами"
+    description = "інструмент для вправ з дієслівами, використовуй цей інструмент для вправ з дієслівами, Давай практикувати відмінювання дієслів."
 
     def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the tool."""
