@@ -85,7 +85,7 @@ def main():
         agent = initialize_agent(
             tools,
             llm,
-            agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
             verbose=True,
             memory=memory,
             agent_kwargs={

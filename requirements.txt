@@ -46,3 +46,4 @@ python-dotenv==1.0.0
 langchain[openai]==0.0.305
 langsmith==0.0.41
 omegaconf==2.3.0
+pyautogen==0.1.6
