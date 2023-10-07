@@ -8,6 +8,7 @@ from langchain.prompts import PromptTemplate
 from langchain.tools import BaseTool
 
 from src.utils.config import load_config
+from src.utils.prompts.ua.tutor_agent import verb_template
 
 
 class IntroTool(BaseTool):
@@ -64,7 +65,10 @@ class SentenceCheckTool(BaseTool):
 
 class VerbConjugationPractiseTool(BaseTool):
     name = "інструмент для вправ з дієслівами"
-    description = "інструмент для вправ з дієслівами, використовуй цей інструмент для вправ з дієслівами, Давай практикувати відмінювання дієслів."
+    description = ("Інструмент для вправ з дієслівами, використовуй цей інструмент для вправ з дієслівами, "
+                   "Давай практикувати відмінювання дієслів. "
+                   "Інструмент використовується для правил коньюгації дієслів в польскій мовію"
+                   "Інструмент використовується для практики коньюгації дієслів в польскій мові")
 
     def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the tool."""
@@ -81,7 +85,7 @@ class VerbConjugationPractiseTool(BaseTool):
             # return_messages=True,
         )
 
-        verb_template = PromptTemplate(input_variables=["history", "input"], template=config.verb_template)
+        v_template = PromptTemplate(input_variables=["history", "input"], template=verb_template)
 
         llm = ChatOpenAI(model_name="gpt-4", temperature=0.1, streaming=True)
         qa_chain = ConversationChain(
@@ -90,7 +94,7 @@ class VerbConjugationPractiseTool(BaseTool):
             memory=memory,
             # combine_docs_chain_kwargs={"prompt": qa_template},
         )
-        qa_chain.prompt = verb_template
+        qa_chain.prompt = v_template
 
         return qa_chain.run(query)
 
