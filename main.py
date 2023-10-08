@@ -13,7 +13,7 @@ from langchain.prompts import PromptTemplate
 from src.utils.config import load_config
 from src.utils.parser import AITutorParser
 from src.utils.prompts.ua.tutor_agent import agent_format_instructions, agent_prefix, agent_suffix
-from src.utils.tools import IntroTool, SentenceCheckTool, VerbConjugationPractiseTool
+from src.utils.tools import IntroTool, PrzypadkiPractiseTool, SentenceCheckTool, VerbConjugationPractiseTool
 
 load_dotenv()
 
@@ -80,7 +80,7 @@ def main():
 
         llm = ChatOpenAI(model_name="gpt-4", temperature=0, streaming=True)
         tools = load_tools(["llm-math"], llm=llm)
-        tools.extend([SentenceCheckTool(), VerbConjugationPractiseTool(), IntroTool()])
+        tools.extend([SentenceCheckTool(), VerbConjugationPractiseTool(), IntroTool(), PrzypadkiPractiseTool()])
         # tools = [SentenceCheckTool()]
         agent = initialize_agent(
             tools,

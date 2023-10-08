@@ -2,17 +2,15 @@ import autogen
 
 config_list_gpt4 = autogen.config_list_from_json(
     "OAI_CONFIG_LIST",
-    filter_dict={
-        "model": ["gpt-4"] #, "gpt-4-0314", "gpt4", "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-v0314"],
-    },
+    filter_dict={"model": ["gpt-4"]},  # , "gpt-4-0314", "gpt4", "gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-v0314"],
 )
 
 llm_config = {"config_list": config_list_gpt4, "seed": 42}
 user_proxy = autogen.UserProxyAgent(
-   name="User_proxy",
-   system_message="A human teacher.",
-   code_execution_config={"last_n_messages": 2, "work_dir": "groupchat"},
-   #human_input_mode="TERMINATE"
+    name="User_proxy",
+    system_message="A human teacher.",
+    code_execution_config={"last_n_messages": 2, "work_dir": "groupchat"},
+    # human_input_mode="TERMINATE"
 )
 coder = autogen.AssistantAgent(
     name="Polish_grammar_verb_expert",
